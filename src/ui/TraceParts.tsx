@@ -150,7 +150,7 @@ export function HistoryPanel({ target }: { target: string }) {
       {empty && <div className="muted">Nothing has been recorded against this yet.</div>}
       {fs.map((f) => (
         <Block key={f.id} title={f.title} right={<StatusPill status={findingStatus(f, state)} />}>
-          <span className="muted small">Raised by the independent checks. Open Issues to act on it.</span>
+          <span className="muted small">Raised by the independent checks. Open Problems to act on it.</span>
         </Block>
       ))}
       {adjs.map((a) => (

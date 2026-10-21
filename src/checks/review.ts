@@ -21,7 +21,7 @@ const CA_RENAMES: Record<string, string> = {
 
 /**
  * Compare every number that exists in both years. A line is flagged when it moved by more
- * than the firm's percentage and dollar thresholds (editable in Firm → Standards).
+ * than the firm's percentage and dollar thresholds (editable in Settings & security).
  */
 export function variances(
   idx: PacketIndex,
@@ -86,7 +86,7 @@ export function dispositionOf(idx: PacketIndex, docId: string): Disposition {
     return { kind: 'after_current_run', why: `Received ${doc.received_at.slice(0, 10)}, after the ${cur.version} run (${cur.computed_at.slice(0, 10)}). Not in the numbers yet.` }
   }
   if (REFERENCE_TYPES.has(doc.document_type)) return { kind: 'reference', why: 'Context for the engagement, identity or prior year; it supports the file, not a number.' }
-  return { kind: 'not_landed', why: 'The engine lists this document as used, but none of its values reached any line.' }
+  return { kind: 'not_landed', why: 'The tax software lists this document as used, but none of its values reached any line.' }
 }
 
 export function completenessFindings(idx: PacketIndex): Finding[] {
@@ -99,8 +99,8 @@ export function completenessFindings(idx: PacketIndex): Finding[] {
       area: 'partner_review', severity: 'warning', kind: 'tie_out',
       title: `${doc.id} "${doc.title}" was used, but nothing in it reached the return`,
       detail:
-        `The engine lists ${doc.id} as an input of ${idx.current.version}, yet no return line reads any of its ${doc.extraction.values} extracted values. ` +
-        `Either the document truly needs no action, or the engine ignored something it said. Open the document, look at each value, and record what you concluded.`,
+        `The tax software lists ${doc.id} as an input of ${idx.current.version}, yet no return line reads any of its ${doc.extraction.values} extracted values. ` +
+        `Either the document truly needs no action, or the tax software ignored something it said. Open the document, look at each value, and record what you concluded.`,
       surfacedBy: 'Document index shows, for each document, the exact lines it fed. An empty "landed on" cell next to "used" is the signal.',
       refs: [`doc:${doc.id}`],
     })

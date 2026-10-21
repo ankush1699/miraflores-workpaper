@@ -3,16 +3,16 @@ import type { Doc, ExtractedValue, Packet, ReturnLine, ReturnVersion } from './t
 // The workpaper is organised around the same areas the firm budgets hours against,
 // so "time vs budget" and "who owns this area" line up with what the preparer sees.
 export const AREAS = [
-  { id: 'intake_and_engagement', label: 'Intake & engagement' },
-  { id: 'wages_and_stock_compensation', label: 'Wages, stock comp & retirement' },
-  { id: 'investments_and_digital_assets', label: 'Investments & digital assets' },
-  { id: 'business', label: 'Business (Lindqvist Studio)' },
-  { id: 'rentals_and_sale', label: 'Rentals & the condo sale' },
-  { id: 'pass_throughs_and_basis', label: 'Pass-throughs & basis' },
-  { id: 'deductions_and_credits', label: 'Deductions & credits' },
-  { id: 'california', label: 'California (540NR)' },
-  { id: 'partner_review', label: 'Partner review' },
-  { id: 'return_summary', label: 'Return totals & payments' },
+  { id: 'intake_and_engagement', label: 'Client & paperwork', hint: 'Signed engagement letter, IDs and the family details.' },
+  { id: 'wages_and_stock_compensation', label: 'Salary, stock pay & retirement', hint: "Ngozi's two jobs, her company shares, retirement and health savings accounts." },
+  { id: 'investments_and_digital_assets', label: 'Investments & crypto', hint: 'Bank interest, dividends, every stock and crypto sale, and the Swedish account.' },
+  { id: 'business', label: "Erik's design business", hint: "Erik's one-person studio: income from clients, expenses, car, home office." },
+  { id: 'rentals_and_sale', label: 'Rental properties', hint: 'The Sacramento rental house and the Austin condo, which was sold in October.' },
+  { id: 'pass_throughs_and_basis', label: 'Family company & fund', hint: "Erik's 20% of the family woodworking company and the real estate fund." },
+  { id: 'deductions_and_credits', label: 'Deductions & credits', hint: 'Mortgage interest, property tax, charity, and credits for the children.' },
+  { id: 'california', label: 'California return', hint: 'They lived in California until July 15, so California taxes part of the year.' },
+  { id: 'partner_review', label: 'Final review', hint: 'Things the partner checks across the whole return.' },
+  { id: 'return_summary', label: 'Totals & payments', hint: 'Total income and tax, what was already paid, and what is owed or refunded.' },
 ] as const
 
 export type AreaId = (typeof AREAS)[number]['id']

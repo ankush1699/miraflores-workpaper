@@ -41,7 +41,7 @@ export function simulateEfile(idx: PacketIndex, state: WorkState, jurisdiction: 
 }
 
 /**
- * What the IRS would charge on a balance paid after the original due date. The engine
+ * What the IRS would charge on a balance paid after the original due date. The tax software
  * does not compute this, so it is estimated from the packet's post-filing rates:
  * interest at the annual rate by day, failure-to-pay at 0.5% for each month or part.
  */

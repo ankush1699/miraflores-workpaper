@@ -9,8 +9,8 @@ import { PageHeader } from '../ui/Shell'
 export function FirmPage() {
   return (
     <div className="page stack">
-      <PageHeader title="Firm & standards">
-        The firm's own rules, enforced by the workpaper rather than written in a manual. Only the firm administrator changes them; everyone else sees them applied.
+      <PageHeader title="Settings & security">
+        The firm’s rules, which the app enforces automatically, plus who has viewed sensitive data and time spent. Only the firm administrator (Jo Kimura) can change the rules.
       </PageHeader>
       <Standards />
       <div className="grid cols-2">

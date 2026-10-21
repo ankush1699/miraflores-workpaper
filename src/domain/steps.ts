@@ -56,7 +56,7 @@ function evaluate(name: string, c: Ctx): StepStatus {
         return disp.kind === 'not_landed' && !state.docDispositions[d.id]
       })
       return missing.length
-        ? { name, state: 'open', auto: true, why: `${missing.length} document(s) used by the engine but never landed need a recorded decision: ${missing.map((d) => d.id).join(', ')}.` }
+        ? { name, state: 'open', auto: true, why: `${missing.length} document(s) used by the tax software but never landed need a recorded decision: ${missing.map((d) => d.id).join(', ')}.` }
         : { name, state: 'done', auto: true, why: 'Every document has landed on a line, been superseded, or has a recorded decision.' }
     }
     case 'Prior-year variances explained': {

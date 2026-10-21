@@ -4,7 +4,7 @@ import { useStore } from '../store/Store'
 import { Money, Num, Pill, RefChip } from '../ui/Common'
 
 // Each area gets one panel of reconciliations: the tie-outs a careful preparer would build
-// by hand, drawn from the same records the engine used.
+// by hand, drawn from the same records the tax software used.
 
 export function BusinessPanel() {
   const { idx } = useStore()
@@ -51,7 +51,7 @@ export function InvestmentsPanel() {
           })}
         </tbody>
       </table>
-      <p className="muted small">Every lot, box by box, is on the CPA schedules page under “Sales detail”.</p>
+      <p className="muted small">Every lot, box by box, is in Reports → Sales detail.</p>
     </section>
   )
 }
@@ -92,7 +92,7 @@ export function PassThroughPanel() {
           ))}
         </tbody>
       </table>
-      <p className="small muted">A gap is shown as a gap. The engine's own “missing 2023 K-1” warning disappears once D40 arrives, but the 2022 starting figure remains an unverified client worksheet.</p>
+      <p className="small muted">A gap is shown as a gap. The tax software's own “missing 2023 K-1” warning disappears once D40 arrives, but the 2022 starting figure remains an unverified client worksheet.</p>
     </section>
   )
 }

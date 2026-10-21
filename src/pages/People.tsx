@@ -16,7 +16,7 @@ export function PeoplePage() {
 
   return (
     <div className="page stack">
-      <PageHeader title="Notes & people">
+      <PageHeader title="Notes & sign-offs">
         Review notes that can block filing, questions to the client that become evidence when answered, sign-offs that reopen when what was signed changes, and who owns what.
       </PageHeader>
 

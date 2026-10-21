@@ -23,7 +23,7 @@ const questionnaireConflicts: Check = {
       detail:
         `qa-14 answers "No". The brokerage statements show ${stockLots} stock and fund sales (Northlake, Meridian, Brightpath) and the Coinhaven 1099-DA shows ${coinLots} digital asset sales. ` +
         `The documents win, but the answer matters for completeness: if the client thinks the direct-indexing account is "not selling", something else may also be missing from their mental list.`,
-      surfacedBy: 'The questionnaire is shown beside the area it relates to, and the engine\'s own conflict diagnostic is linked to the finding that supersedes it.',
+      surfacedBy: 'The questionnaire is shown beside the area it relates to, and the tax software\'s own conflict diagnostic is linked to the finding that supersedes it.',
       refs: ['qa:qa-14', 'qa:qa-15', 'doc:D28', 'doc:D31', 'doc:D74', 'doc:D34'],
       ask: 'You answered that no investments were sold, but your statements show many sales. Which accounts did you consider when answering?',
     })
@@ -79,10 +79,10 @@ const scorpBasis: Check = {
       title: `Woodworks distributions exceed stock basis: ${usd(numeric(excess))} taxed as capital gain`,
       detail:
         `Rolling basis forward: 2022 ${usd(b2022)} (a client worksheet, never verified) + 2023 income ${usd(in2023)} - distributions ${usd(out2023)} + 2024 income ${usd(in2024)} - distributions ${usd(out2024)} = ${usd(rolled)}, ` +
-        `which agrees to the engine's opening basis of ${usd(numeric(begin))}. In 2025 income of ${usd(18485)} is added and ${usd(42000)} is distributed, so ${usd(numeric(excess))} is gain. ` +
+        `which agrees to the tax software's opening basis of ${usd(numeric(begin))}. In 2025 income of ${usd(18485)} is added and ${usd(42000)} is distributed, so ${usd(numeric(excess))} is gain. ` +
         `It only exists because the 2023 K-1 was missing last year and distributions were never checked against basis. Before filing, ask Woodworks' CPA about shareholder loans and the basis schedule: any loan basis would remove the gain. ` +
         `The 2025 K-1 notes 1,580 of Oregon tax paid for Erik is inside box 16D.`,
-      surfacedBy: 'Basis table by year with gaps shown as gaps; the engine\'s own diagnostic about the missing 2023 K-1 disappears when D40 arrives and this one takes its place.',
+      surfacedBy: 'Basis table by year with gaps shown as gaps; the tax software\'s own diagnostic about the missing 2023 K-1 disappears when D40 arrives and this one takes its place.',
       refs: ['line:F7203.1', 'line:F7203.excess', 'doc:D40', 'doc:D39', 'py:/basis_records/scorp_lindqvist_family_woodworks'],
       ask: 'Please ask the Woodworks CPA for each shareholder\'s stock and loan basis schedule through 2025.',
     }]
@@ -126,7 +126,7 @@ const dueDiligence: Check = {
       title: 'Form 8867 (paid preparer due diligence) not completed',
       detail:
         `The child tax credit and credit for other dependents are claimed (CTC 2,200 for Theo; ODC 500 for Ada, phased down to ${usd(numeric(lineIn(idx, 'F1040.19')))} by income). ` +
-        `The firm's own rules require due diligence to be documented for these, and the engine says only the preparer can complete the checklist. ` +
+        `The firm's own rules require due diligence to be documented for these, and the tax software says only the preparer can complete the checklist. ` +
         `Ada is 19, a full-time student who lived at home 12 months by the client's account, and files her own return with the dependent box checked (related return, not in this packet). Theo's SSN needs fixing first.`,
       surfacedBy: 'Judgment page: due diligence is a checklist per credit with the facts it relies on, and it is a required step before sign-off.',
       refs: ['line:F8867.status', 'line:F1040.19', 'household:ada', 'household:theo'],
@@ -143,11 +143,11 @@ const californiaAmt: Check = {
     return [{
       id: 'ca-amt-not-computed',
       area: 'california', severity: 'warning', kind: 'judgment',
-      title: 'California AMT is not computed by the engine',
+      title: 'California AMT is not computed by the tax software',
       detail:
         `The ISO exercise on 07/30/2025 (1,000 shares, spread ${usd(numeric(iso))}) triggers federal AMT of ${usd(numeric(lineIn(idx, 'F6251.11')))}. California has its own AMT (Schedule P 540NR) ` +
-        `and the exercise happened after the move to Texas. Allocation of the ISO adjustment between California and Texas is a judgment call that needs a recorded conclusion; the engine writes 0 for California AMT.`,
-      surfacedBy: 'California area lists what the engine did not compute as an explicit open item instead of a silent zero.',
+        `and the exercise happened after the move to Texas. Allocation of the ISO adjustment between California and Texas is a judgment call that needs a recorded conclusion; the tax software writes 0 for California AMT.`,
+      surfacedBy: 'California area lists what the tax software did not compute as an explicit open item instead of a silent zero.',
       refs: ['line:F540NR.61', 'line:F6251.2i', 'doc:D12'],
     }]
   },
@@ -166,7 +166,7 @@ const equipmentElection: Check = {
       area: 'business', severity: 'info', kind: 'judgment',
       title: 'Election: 100% special depreciation vs section 179 vs regular MACRS on the $38,000 equipment',
       detail:
-        `The engine defaulted to 100% special depreciation for the March purchases. Its alternatives: section 179 leaves federal tax unchanged but changes California by ${usd(s179.california.total_tax_change)} ` +
+        `The tax software defaulted to 100% special depreciation for the March purchases. Its alternatives: section 179 leaves federal tax unchanged but changes California by ${usd(s179.california.total_tax_change)} ` +
         `(California allows 179 up to 25,000 but not bonus); electing out of bonus into 5-year MACRS raises federal tax by ${usd(macrs.federal.total_tax_change)} and lowers California by ${usd(-macrs.california.total_tax_change)}. ` +
         `Because California tax is lower with 179 and federal is identical, it is worth recording a decision. Note the California advantage is mostly for the part-year resident share, and the 2026 return is California-source only.`,
       surfacedBy: 'What-if panel: each engine alternative with federal and California effect side by side, and a place to record which election was made and why.',

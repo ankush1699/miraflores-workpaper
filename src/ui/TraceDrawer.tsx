@@ -92,7 +92,7 @@ function LineTrace({ lineKey }: { lineKey: string }) {
   return (
     <>
       <DrawerHeader
-        kicker={`${line.jurisdiction === 'california' ? 'California' : 'Federal'} · ${areaLabel(areaOfLine(line.key))}`}
+        kicker={`Where this number comes from · ${line.jurisdiction === 'california' ? 'California' : 'Federal'} · ${areaLabel(areaOfLine(line.key))}`}
         title={line.label}
         right={typeof line.value === 'number' ? (
           <div style={{ textAlign: 'right' }}>
@@ -101,14 +101,13 @@ function LineTrace({ lineKey }: { lineKey: string }) {
           </div>
         ) : <strong>{String(line.value)}</strong>}
         tabs={[
-          { id: 'source', label: 'Source' }, { id: 'calc', label: 'How it was built' },
-          { id: 'history', label: 'History', badge: history }, { id: 'related', label: 'Related' },
+          { id: 'source', label: 'Source document' }, { id: 'calc', label: 'How it’s calculated' },
+          { id: 'history', label: 'History & actions', badge: history }, { id: 'related', label: 'Related' },
         ]} tab={tab} setTab={setTab}
       />
       <div className="body">
         <div className="row wrap" style={{ marginBottom: 12 }}>
-          <span className="mono">{line.key}</span>
-          <Pill>{line.rule}</Pill>
+          <span className="code" title="Form and line on the tax return">{line.key}</span>
           {fs.filter((f) => f.severity !== 'info').map((f) => <span key={f.id} className="row"><SeverityPill severity={f.severity} /><StatusPill status={findingStatus(f, state)} /></span>)}
           <span style={{ flex: 1 }} />
           {typeof line.value === 'number' && can('adjust.propose') && <button className="btn small primary" onClick={() => openAdjust({ kind: 'line', lineKey })}>Adjust this number</button>}
@@ -117,7 +116,7 @@ function LineTrace({ lineKey }: { lineKey: string }) {
           <div key={f.id} className={`alert ${f.severity === 'error' ? 'bad' : 'warn'}`} style={{ marginBottom: 10 }}>
             <strong>{f.title}</strong>
             <div className="small" style={{ marginTop: 4 }}>{f.detail}</div>
-            {f.fix && findingStatus(f, state) === 'open' && can('adjust.propose') && <button className="btn small primary" style={{ marginTop: 6 }} onClick={() => openAdjust({ kind: 'finding', finding: f })}>Propose the fix</button>}
+            {f.fix && findingStatus(f, state) === 'open' && can('adjust.propose') && <button className="btn small primary" style={{ marginTop: 6 }} onClick={() => openAdjust({ kind: 'finding', finding: f })}>Fix it</button>}
           </div>
         ))}
         {tab === 'source' && <SourceTab line={line} />}
@@ -145,7 +144,7 @@ function SourceTab({ line }: { line: ReturnLine }) {
   return (
     <div className="stack">
       {line.note && <div className="alert info small">{line.note}</div>}
-      {!line.sources.length && <div className="muted">This figure is derived from other lines, not read from a document. See “How it was built”.</div>}
+      {!line.sources.length && <div className="muted">This number is calculated from other numbers, not read from a document. See “How it’s calculated”.</div>}
       {groups.map(([key, evs]) => {
         const [docId, page] = key.split('|')
         const doc = idx.docs.get(docId)!
@@ -212,18 +211,18 @@ function CalcTab({ line }: { line: ReturnLine }) {
   return (
     <div className="stack">
       <div className="card" style={{ padding: '9px 12px' }}>
-        <strong>{line.rule}</strong>
-        <div className="small">{rule ?? 'No description in the engine reference.'}</div>
+        <strong>The tax software’s rule</strong> <span className="code">{line.rule}</span>
+        <div className="small">{rule ?? 'No description given.'}</div>
       </div>
       {line.inputs.length > 0 ? (
         <div>
-          <h3 style={{ marginBottom: 6 }}>Built from</h3>
+          <h3 style={{ marginBottom: 6 }}>Made up of</h3>
           <div className="tree"><ul><Node line={line} depth={0} open /></ul></div>
         </div>
-      ) : <div className="muted">No other lines feed this one; it is read straight from its sources.</div>}
+      ) : <div className="muted">Nothing else adds into this number; it is read straight from the documents.</div>}
       {flows.length > 0 && (
         <div>
-          <h3 style={{ marginBottom: 6 }}>Flows into</h3>
+          <h3 style={{ marginBottom: 6 }}>This number feeds into</h3>
           <div className="row wrap">{flows.slice(0, 12).map((l) => <button key={l.key} className="chip" onClick={() => openTrace(`line:${l.key}`)}><span className="k">{l.key}</span><span className="t">{l.label}</span></button>)}</div>
         </div>
       )}
@@ -263,7 +262,7 @@ function RelatedTab({ line }: { line: ReturnLine }) {
   return (
     <div className="stack">
       <div>
-        <h3 style={{ marginBottom: 6 }}>Across engine runs</h3>
+        <h3 style={{ marginBottom: 6 }}>In each of the tax software’s three calculations</h3>
         <table className="tbl"><tbody>
           {idx.versions.map((v) => {
             const l = idx.lineMaps.get(v.version)?.get(line.key)

@@ -3,9 +3,9 @@ import { lineIn, numeric } from '../packet'
 import type { AdjustmentDraft, Finding } from './types'
 import { docText, evByField, evNumber, lineNum, parseMoney, round0, round2, usd } from './helpers'
 
-// Each check here looks at one thing the engine did and re-derives it from the source
-// documents. None of them read the engine's own diagnostics: the point is to catch what
-// the engine does not know it got wrong.
+// Each check here looks at one thing the tax software did and re-derives it from the source
+// documents. None of them read the tax software's own diagnostics: the point is to catch what
+// the tax software does not know it got wrong.
 
 export type Check = { id: string; title: string; run: (idx: PacketIndex) => Finding[] }
 
@@ -30,9 +30,9 @@ const grossReceipts: Check = {
     return [{
       id: 'schc-gross-double-count',
       area: 'business', severity: 'error', kind: 'engine_error',
-      title: `Schedule C gross receipts counted ${usd(overlap)} twice`,
+      title: `Erik’s business income counted ${usd(overlap)} twice (card payments)`,
       detail:
-        `The engine added the ${usd(card)} Paywell 1099-K to the books' ${usd(books)} of revenue because it could not ` +
+        `The tax software added the ${usd(card)} Paywell 1099-K to the books' ${usd(books)} of revenue because it could not ` +
         `match the card payments to a deposit. The books already include them: Atlas paid ${usd(evNumber(idx, 'D17', 'box1'))} ` +
         `in total, and ${usd(overlap)} of that came through Paywell (D15 p3). The books tie exactly to the five 1099-NECs ` +
         `(${usd(nec)}) plus ${usd(unreported)} from small clients with no 1099 = ${usd(nec + unreported)}. Gross receipts should be ${usd(books)}, not ${usd(numeric(line))}.`,
@@ -78,7 +78,7 @@ const mileageDuplicatePage: Check = {
       title: `Mileage log page ${dupPage} is a second scan of another page (${miles.toLocaleString()} miles counted twice)`,
       detail:
         `Page ${dupPage} is labelled "second scan of the May-Aug sheet", and its trips match the earlier page line for line. ` +
-        `The engine adds every page total, so business miles came out ${numeric(line).toLocaleString()} instead of ${fixedMiles.toLocaleString()}. ` +
+        `The tax software adds every page total, so business miles came out ${numeric(line).toLocaleString()} instead of ${fixedMiles.toLocaleString()}. ` +
         `At ${rate} per mile that overstates the car deduction by ${usd(saved)}.`,
       surfacedBy: 'Document viewer shows the page text next to its extracted total; the duplicate-page comparison flags it before the number is trusted.',
       refs: ['line:SchC.44a', 'line:SchC.9', 'doc:D23#page3', 'doc:D23#page2', 'msg:msg-03'],
@@ -116,9 +116,9 @@ const phoneAndInternet: Check = {
     return [{
       id: 'schc-personal-use-phone-internet',
       area: 'business', severity: 'warning', kind: 'engine_error',
-      title: `Phone and internet deducted at 100%; client says ${phone[1]}% and ${net[1]}% business`,
+      title: `Family phone and internet deducted in full; the client says only part is business`,
       detail:
-        `The engine took the books' telephone (${usd(phoneAmt)}) and internet (${usd(netAmt)}) in full. On the March 26 call Erik said ` +
+        `The tax software took the books' telephone (${usd(phoneAmt)}) and internet (${usd(netAmt)}) in full. On the March 26 call Erik said ` +
         `the family mobile plan is about ${phone[1]}% business and the shared home internet about ${net[1]}%. ` +
         `Allowed: ${usd(allowed)}, so ${usd(-delta)} is personal.`,
       surfacedBy: 'Client call notes are attached to the evidence for SchC.25, so the percentages sit next to the number.',
@@ -149,8 +149,8 @@ const personalSubscription: Check = {
     return [{
       id: 'schc-spotify',
       area: 'business', severity: 'warning', kind: 'engine_error',
-      title: `Spotify Family (${usd(amount)}) is in business software but is personal`,
-      detail: `The transaction detail (D15) lists it inside Software and subscriptions, and Erik confirmed on the call that it was booked by mistake. The engine took the account total as is.`,
+      title: `A personal Spotify subscription (${usd(amount)}) was booked as a business expense`,
+      detail: `The transaction detail (D15) lists it inside Software and subscriptions, and Erik confirmed on the call that it was booked by mistake. The tax software took the account total as is.`,
       surfacedBy: 'Books-to-tax view lists the account detail under each P&L line.',
       refs: ['line:SchC.27a.1', 'doc:D15#page1', 'call:call-01'],
       fix: {
@@ -176,12 +176,12 @@ const healthInsuranceEligibility: Check = {
     return [{
       id: 'sehi-spouse-plan',
       area: 'business', severity: 'warning', kind: 'judgment',
-      title: `Erik's ${usd(amount)} health insurance deduction may not be allowed`,
+      title: `Erik’s ${usd(amount)} health insurance deduction may not be allowed`,
       detail:
         `The client says both of Ngozi's employers offer family coverage and Erik chose his own plan (qa-25). The self-employed health ` +
         `insurance deduction is not allowed for months in which the taxpayer could have joined a plan subsidized by a spouse's employer. ` +
         `Both W-2s show employer-sponsored coverage (box 12 DD). Last year's return took no deduction for the same reason (2024 note on Sch1.17). ` +
-        `The engine's rule does not look at eligibility. Needs a decision and a record of the authority relied on.`,
+        `The tax software's rule does not look at eligibility. Needs a decision and a record of the authority relied on.`,
       surfacedBy: 'Prior-year variance on Sch1.17 (0 last year, 14,400 now) plus the questionnaire answer sitting beside the line.',
       refs: ['line:Sch1.17', 'qa:qa-25', 'py:/return_2024/notes/Sch1.17', 'ev:ev-0484', 'doc:D25'],
       fix: {
@@ -210,7 +210,7 @@ const sepExcess: Check = {
       title: `SEP contribution of $18,000 exceeds the deductible limit by ${usd(carry)}`,
       detail:
         `The client deposited $18,000 on 04/10/2026 (D26) for 2025. The limit is 20% of net profit less half of self-employment tax, ` +
-        `${usd(numeric(line))} on the engine's numbers. The extra ${usd(carry)} is not deductible. Decide whether it stays in as a carryforward ` +
+        `${usd(numeric(line))} on the tax software's numbers. The extra ${usd(carry)} is not deductible. Decide whether it stays in as a carryforward ` +
         `or is withdrawn, and re-check the limit after any change to Schedule C profit, because the limit moves with it.`,
       surfacedBy: 'Carryovers table and the Schedule C adjustments: any change to profit visibly invalidates the SEP line.',
       refs: ['line:Sch1.16', 'doc:D26', 'qa:qa-26'],
@@ -249,10 +249,10 @@ const rsuBasis: Check = {
     return [{
       id: 'rsu-basis-unmatched',
       area: 'investments_and_digital_assets', severity: 'error', kind: 'engine_error',
-      title: `RSU sales taxed with zero basis: gain overstated by ${usd(total)}`,
+      title: `Company-share sales taxed as if the shares cost $0 (${usd(total)} taxed twice)`,
       detail:
         `Northlake reported the three RSU lots as noncovered with no cost basis. The Corvane supplemental statement (D11) gives the adjusted basis ` +
-        `(${notes.join(', ')}). The engine's rule says it uses the supplemental statement when it matches the lot, but none was matched, so Schedule D ` +
+        `(${notes.join(', ')}). The tax software's rule says it uses the supplemental statement when it matches the lot, but none was matched, so Schedule D ` +
         `treats the full proceeds as gain, on top of the RSU income already in W-2 box 1. That taxes the same income twice.`,
       surfacedBy: 'Documents → "where it landed": D11 shows no lines reading it. The 8949 lot trace shows a basis of 0.00 with no supplemental source.',
       refs: ['line:F8949.B.N1', 'line:F8949.B.N3', 'line:F8949.E.N4', 'doc:D11#page2', 'doc:D28#page3', 'ev:ev-0066', 'ev:ev-0068', 'ev:ev-0070'],
@@ -284,7 +284,7 @@ const duplicateInterest: Check = {
           return [{
             id: 'interest-double-count',
             area: 'investments_and_digital_assets', severity: 'error', kind: 'engine_error',
-            title: `The ${usd(a.value as number)} Northlake bank-sweep interest is on Schedule B twice`,
+            title: `The same ${usd(a.value as number)} of bank interest is counted twice`,
             detail:
               `The Northlake Securities composite (${aa.doc}, account ending ${aa.end}) already includes a 1099-INT line from Northlake Bank for the sweep program. ` +
               `The stand-alone Northlake Bank 1099-INT (${bb.doc}) is the same form for the same account and amount. Each was read as its own payer ` +
@@ -320,9 +320,9 @@ const swedishRate: Check = {
     return [{
       id: 'fx-wrong-year',
       area: 'investments_and_digital_assets', severity: 'warning', kind: 'engine_error',
-      title: `Swedish interest converted at the 2024 average rate (${fx['2024_average']}) instead of 2025 (${fx['2025_average']})`,
+      title: `Swedish bank interest converted at last year’s exchange rate`,
       detail:
-        `SEK ${sek.toLocaleString()} at ${fx['2025_average']} is ${usd(right)}; the engine used ${fx['2024_average']} and got ${usd(numeric(line))}. ` +
+        `SEK ${sek.toLocaleString()} at ${fx['2025_average']} is ${usd(right)}; the tax software used ${fx['2024_average']} and got ${usd(numeric(line))}. ` +
         `Small, but it is the kind of silent default a reviewer would never see without opening the line's inputs.`,
       surfacedBy: 'Trace drawer lists the exchange rate as a named input (ref:fx.SEK.2024_average), so the wrong year is visible.',
       refs: ['line:SchB.1.6', 'ev:ev-0960', 'ref:param.fx'],
@@ -348,14 +348,14 @@ const cryptoBasis: Check = {
     const basis = /about ([\d,]+)/.exec(msg.text)?.[1]
     if (!basis) return []
     const cost = parseMoney(basis)
-    const proceeds = numeric(line) // the engine's basis was zero, so its gain equals the proceeds
+    const proceeds = numeric(line) // the tax software's basis was zero, so its gain equals the proceeds
     const gain = proceeds - cost
     return [{
       id: 'crypto-c6',
       area: 'investments_and_digital_assets', severity: 'error', kind: 'engine_error',
-      title: `Bitcoin lot C6 taxed with zero basis and the wrong holding period`,
+      title: `One Bitcoin sale taxed as if it cost $0`,
       detail:
-        `Coinhaven had no basis for the 0.05 BTC because it was transferred in from another exchange. The engine used 0 and the transfer-in date, ` +
+        `Coinhaven had no basis for the 0.05 BTC because it was transferred in from another exchange. The tax software used 0 and the transfer-in date, ` +
         `so the ${usd(proceeds)} sale was taxed as a short-term gain. Erik says (msg-07) he bought it in March 2021 for about ${usd(cost)}, which makes it ` +
         `long-term with a gain of ${usd(gain)}. Support so far is the client's recollection plus a bank line to "CryptoNorth" on 03/15/2021. ` +
         `Get the bank statement before relying on it.`,
@@ -391,7 +391,7 @@ const meridianPage32: Check = {
       out.push({
         id: 'meridian-p32-unread',
         area: 'investments_and_digital_assets', severity: 'error', kind: 'extraction_error',
-        title: `Meridian page 32 was never read: one sale is missing and the summary does not tie by ${usd(proceeds)}`,
+        title: `A page of a broker statement was never read, so one sale is missing`,
         detail:
           `The corrected Meridian 1099 (D31) has a supplemental page 32 with a fractional-share sale (Ironwood REIT, proceeds ${usd(proceeds)}, basis ${usd(basis)}). ` +
           `The pipeline skipped it (${doc.extraction.reason}). The 1099-B summary says 71,965.00 but the lots add to 71,715.00, a difference of exactly ${usd(proceeds)}. ` +
@@ -430,9 +430,9 @@ const hvacCapitalize: Check = {
     return [{
       id: 'rental-hvac-capitalize',
       area: 'rentals_and_sale', severity: 'error', kind: 'engine_error',
-      title: `The ${usd(cost)} HVAC replacement at Fremont Way was deducted as a repair`,
+      title: `A ${usd(cost)} heating system at the rental was deducted all at once instead of over 27.5 years`,
       detail:
-        `The owner statement lumps HVAC inside repairs, and the engine took the whole ${usd(numeric(line))} as an expense. The invoice (D47) is for removing the failed furnace ` +
+        `The owner statement lumps HVAC inside repairs, and the tax software took the whole ${usd(numeric(line))} as an expense. The invoice (D47) is for removing the failed furnace ` +
         `and condenser and installing a new heat pump system with air handler and line set, and Erik confirmed the whole system was replaced. That is an improvement ` +
         `(a restoration of the property), so it is capitalized and depreciated over 27.5 years: about ${usd(dep, true)} for 2025 (placed in service August 2025, mid-month).`,
       surfacedBy: 'Rentals area: each Schedule E expense lists the source line items; D46 shows the HVAC line inside "Repairs". The depreciation list has no asset for it.',
@@ -474,10 +474,10 @@ const mortgageInterestDoubleCount: Check = {
     return [{
       id: 'mortgage-payoff-interest-twice',
       area: 'deductions_and_credits', severity: 'error', kind: 'engine_error',
-      title: `Payoff interest of ${usd(payoff)} added on top of a 1098 that already includes it`,
+      title: `Mortgage interest of ${usd(payoff)} counted twice`,
       detail:
         `The Lonestar Form 1098 box 1 (${usd(evNumber(idx, 'D55', 'box1'))}) says it includes interest paid at payoff on 11/20/2025, and the payoff statement says its interest ` +
-        `"is reported on the 2025 Form 1098". The engine's rule adds interest from every 1098 and every lender statement, so ${usd(payoff)} is deducted twice.`,
+        `"is reported on the 2025 Form 1098". The tax software's rule adds interest from every 1098 and every lender statement, so ${usd(payoff)} is deducted twice.`,
       surfacedBy: 'Trace of SchA.8a lists four inputs; the payoff statement (D56) is one of them and its printed text says it is already on the 1098.',
       refs: ['line:SchA.8a', 'ev:ev-1029', 'ev:ev-1032', 'doc:D55', 'doc:D56'],
       fix: {
@@ -509,7 +509,7 @@ const propertyTaxProration: Check = {
     return [{
       id: 'property-tax-seller-share',
       area: 'deductions_and_credits', severity: 'error', kind: 'engine_error',
-      title: `Real estate tax deducted includes ${usd(credit)} that belongs to the seller`,
+      title: `Property tax deduction includes ${usd(credit)} that belongs to the home’s seller`,
       detail:
         `The Travis County bill for all of 2025 was ${usd(paid)}, paid from escrow in December. At closing on 07/08 the seller credited the buyers ${usd(credit)} ` +
         `for 01/01 to 07/07 (D54), because the seller owned the home then. The Okafor-Lindqvists' own share is ${usd(share)}. ` +
@@ -542,9 +542,9 @@ const vehicleDonation: Check = {
     return [{
       id: 'vehicle-gift-value',
       area: 'deductions_and_credits', severity: 'error', kind: 'engine_error',
-      title: `Subaru donation claimed at ${usd(numeric(line))}; the charity sold it for ${usd(proceeds)}`,
+      title: `Donated car claimed at ${usd(numeric(line))}, but the charity sold it for ${usd(proceeds)}`,
       detail:
-        `The engine took the value from the client's questionnaire (Kelley Blue Book "about 6,000") and ignored the Form 1098-C. The 1098-C says the car was sold at arm's length ` +
+        `The tax software took the value from the client's questionnaire (Kelley Blue Book "about 6,000") and ignored the Form 1098-C. The 1098-C says the car was sold at arm's length ` +
         `on 09/09/2025 for ${usd(proceeds)} and no goods or services were provided. When the charity sells a car over $500 without a significant use, the deduction is capped ` +
         `at the gross sale proceeds. This is also one of the two items the IRS asks about in the 2028 Letter 566.`,
       surfacedBy: 'The line\'s sources list the questionnaire answer (qa-39) but not the 1098-C; the evidence drawer shows the 1098-C box 4c next to the claim.',
@@ -577,9 +577,9 @@ const federalEstimates: Check = {
     return [{
       id: 'estimates-q4-amount',
       area: 'return_summary', severity: 'error', kind: 'data_conflict',
-      title: `Estimated payments ${usd(numeric(line))} but the IRS shows ${usd(paid)}`,
+      title: `Tax payments made during the year: ${usd(numeric(line))} on the return, but the IRS shows ${usd(paid)}`,
       detail:
-        `Three payments have confirmations (D67). For the fourth the engine used the client's answer, "paid January 14, 2026, 4,000 I think" (qa-41). ` +
+        `Three payments have confirmations (D67). For the fourth the tax software used the client's answer, "paid January 14, 2026, 4,000 I think" (qa-41). ` +
         `The IRS account transcript pulled on 03/12 shows 3,000 on 2026-01-15. The transcript is third-party evidence; the client answer was a guess. ` +
         `Payments are overstated by ${usd(numeric(line) - paid)}, which understates the balance due by the same amount.`,
       surfacedBy: 'Payments area: each payment has a verification stamp; the transcript is attached and compared to the questionnaire.',
@@ -618,9 +618,9 @@ const californiaEstimates: Check = {
     return [{
       id: 'ca-estimate-wrong-year',
       area: 'california', severity: 'error', kind: 'engine_error',
-      title: `California estimated payments include ${usd(sum)} that FTB applied to tax year 2024`,
+      title: `A ${usd(sum)} California payment was applied to last year, not this year`,
       detail:
-        `The engine's rule counts every FTB payment dated 04/01/2025 to 01/15/2026. The Web Pay confirmation (D68) and the FTB account both show the ` +
+        `The tax software's rule counts every FTB payment dated 04/01/2025 to 01/15/2026. The Web Pay confirmation (D68) and the FTB account both show the ` +
         `${wrong[0].date} payment of ${usd(wrong[0].amount)} designated as tax year 2024, "held as a 2024 credit". ` +
         `On the return as filed it should not count toward 2025. The client can ask FTB to move it, which is a follow-up action, not a return number.`,
       surfacedBy: 'Payments area lists each payment with its designated tax year from the source document.',
@@ -655,9 +655,9 @@ const californiaWages: Check = {
     return [{
       id: 'ca-wages-after-move',
       area: 'california', severity: 'error', kind: 'engine_error',
-      title: `${usd(-delta)} of Texas-period wages treated as California-source`,
+      title: `${usd(-delta)} of pay earned after moving to Texas was taxed by California`,
       detail:
-        `For the part-year return the engine took California wages straight from W-2 box 16. Halvorsen's payroll kept California as the work state through 09/30 ` +
+        `For the part-year return the tax software took California wages straight from W-2 box 16. Halvorsen's payroll kept California as the work state through 09/30 ` +
         `(a mistake the client mentions in qa-45), but Ngozi moved to Austin on 07/15. The paystub (D73) shows California taxable wages of ${usd(ytd)} through 07/15. ` +
         `Wages for work done in Texas after the move are not California-source. California wages should be ${usd(box16('D08'))} (Corvane, all earned in California) + ${usd(ytd)} = ${usd(right)}, ` +
         `not ${usd(numeric(line))}. The withholding credit (box 17) is unaffected.`,
@@ -695,7 +695,7 @@ const idMisreads: Check = {
       out.push({
         id: `id-misread-${e.id}`,
         area: 'deductions_and_credits', severity: 'warning', kind: 'extraction_error',
-        title: `${idx.docs.get(e.document_id)?.issuer}: tax ID read as ${e.value}, printed as ${printed} (confidence ${e.confidence})`,
+        title: `${idx.docs.get(e.document_id)?.issuer}’s tax ID misread: two digits swapped`,
         detail:
           `Two digits are swapped. The pipeline was confident (${e.confidence}), so nothing flagged it. The wrong number flows to ${used.map((l) => l.key).join(', ') || 'no line'} ` +
           `(care provider on Form 2441). The credit is zero this year because of the employer's dependent-care benefits, but a wrong provider EIN invites a notice and fails due diligence.`,
@@ -724,7 +724,7 @@ const dependentSsn: Check = {
     return [{
       id: 'theo-ssn-typo',
       area: 'intake_and_engagement', severity: 'error', kind: 'data_conflict',
-      title: `Theo's SSN: organizer ${theo.ssn}, Social Security card ${card}`,
+      title: `Theo’s Social Security number was mistyped by the client`,
       detail:
         `The client typed ${theo.ssn} in the organizer. The photographed card (D71) and the 2024 return (${py ?? 'n/a'}) both say ${card}; two digits are swapped. ` +
         `This is exactly why the federal e-file was rejected on 07/13 (${efile?.errors?.[0]?.code}: dependent's TIN and name must match). ` +
@@ -751,7 +751,7 @@ const handwrittenReceipt: Check = {
       out.push({
         id: `low-conf-${e.id}`,
         area: 'deductions_and_credits', severity: 'warning', kind: 'extraction_error',
-        title: `${idx.docs.get(e.document_id)?.title}: amount read at confidence ${e.confidence}`,
+        title: `A handwritten donation receipt was hard to read ($1,500 or $7,500?)`,
         detail:
           `The receipt's first digit is ambiguous in print: it could be 1,500 or 7,500. The pipeline picked 1,500 at ${e.confidence}. ` +
           (msg ? `On 07/01 the client wrote that the parish confirmed 1,500 by phone and the bank statement matches (check #2207, 12/21/2025) (${msg.id}). ` : '') +

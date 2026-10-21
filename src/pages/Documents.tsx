@@ -11,12 +11,12 @@ import { useUi } from '../ui/Ui'
 
 function DispositionPill({ d, recorded }: { d: Disposition; recorded?: boolean }) {
   switch (d.kind) {
-    case 'landed': return <Pill tone="good">Landed on {d.lines.length} line{d.lines.length === 1 ? '' : 's'}</Pill>
-    case 'superseded': return <Pill tone="info">Superseded by {d.by}</Pill>
-    case 'duplicate': return <Pill tone="info">Duplicate of {d.of}</Pill>
-    case 'reference': return <Pill>Reference only</Pill>
-    case 'after_current_run': return <Pill tone="warn">Not in the numbers yet</Pill>
-    case 'not_landed': return recorded ? <Pill tone="good">Decision recorded</Pill> : <Pill tone="bad">Used, but nothing landed</Pill>
+    case 'landed': return <Pill tone="good">Used on {d.lines.length} line{d.lines.length === 1 ? '' : 's'}</Pill>
+    case 'superseded': return <Pill tone="info">Replaced by {d.by}</Pill>
+    case 'duplicate': return <Pill tone="info">Copy of {d.of}</Pill>
+    case 'reference': return <Pill>Background only</Pill>
+    case 'after_current_run': return <Pill tone="warn">Arrived after the last calculation</Pill>
+    case 'not_landed': return recorded ? <Pill tone="good">Checked by a person</Pill> : <Pill tone="bad">Ignored by the software</Pill>
   }
 }
 
@@ -43,10 +43,10 @@ export function DocumentsPage() {
   return (
     <div className="page stack">
       <PageHeader title="Documents">
-        {idx.docList.length} documents. For each one: where it landed on the return, or why it did not. “Used, but nothing landed” is the interesting column, because those are the documents the engine said it read and then ignored.
+        The family’s {idx.docList.length} documents, and where each one was used on the return. Watch for <strong>“Ignored by the software”</strong>: the tax software says it read these, but nothing from them reached the return. Click a document to read it.
       </PageHeader>
       <div className="row wrap">
-        {([['all', 'All'], ['attention', `Needs attention (${needs.length})`], ['partial', 'Not fully read']] as const).map(([k, l]) => <button key={k} className={`btn small ${filter === k ? 'primary' : ''}`} onClick={() => setFilter(k)}>{l}</button>)}
+        {([['all', 'All'], ['attention', `Needs a person (${needs.length})`], ['partial', 'Not fully read']] as const).map(([k, l]) => <button key={k} className={`btn small ${filter === k ? 'primary' : ''}`} onClick={() => setFilter(k)}>{l}</button>)}
         <input type="text" placeholder="Filter by name or issuer" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 260 }} />
       </div>
       {uploads.length > 0 && (
@@ -65,7 +65,7 @@ export function DocumentsPage() {
       )}
       <div className="scroll" style={{ maxHeight: 'none' }}>
         <table className="tbl">
-          <thead><tr><th>Doc</th><th>Title</th><th>For</th><th>Received</th><th className="num">Pages</th><th>Read by pipeline</th><th>Where it landed</th></tr></thead>
+          <thead><tr><th>Doc</th><th>Title</th><th>For</th><th>Received</th><th className="num">Pages</th><th>Read by the software</th><th>Where it was used</th></tr></thead>
           <tbody>
             {shown.map(({ d, disp }) => (
               <tr key={d.id}>
@@ -120,7 +120,7 @@ export function DocumentPage() {
       </div>
       {doc.extraction.reason && <div className="alert warn">{doc.extraction.reason}</div>}
       {disp.kind === 'superseded' && <div className="alert info">Replaced by {disp.by}. Its numbers are in the file for history but not in the return.</div>}
-      {disp.kind === 'not_landed' && <div className="alert bad">{disp.why} Open each value below and decide whether something should have reached the return.{recorded && <> Decision by {who(actors, recorded.by)}: “{recorded.note}”.</>}</div>}
+      {disp.kind === 'not_landed' && <div className="alert bad">The tax software says it used this document, but nothing from it reached the return. Look at the values below and decide whether something was missed.{recorded && <> Decision by {who(actors, recorded.by)}: “{recorded.note}”.</>}</div>}
       {disp.kind === 'after_current_run' && <div className="alert warn">{disp.why}</div>}
 
       <div className="grid" style={{ gridTemplateColumns: 'minmax(0,1.35fr) minmax(0,1fr)' }}>
@@ -152,7 +152,7 @@ export function DocumentPage() {
             )}
           </section>
           <section className="card">
-            <h2>Where it landed</h2>
+            <h2>Where it was used on the return</h2>
             {landing.length === 0 ? <p className="muted small">No return line reads this document.</p> : (
               <div className="row wrap">{landing.map((l) => <RefChip key={l.key} r={`line:${l.key}`} />)}</div>
             )}

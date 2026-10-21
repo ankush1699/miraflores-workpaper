@@ -6,19 +6,20 @@ import { resolveRef, splitRef } from '../domain/refs'
 import type { ReturnLine } from '../packet/types'
 import { useStore } from '../store/Store'
 import { useUi } from './Ui'
+import { SEVERITY } from './words'
 
 export function Pill({ tone, children, title }: { tone?: 'good' | 'warn' | 'bad' | 'info'; children: ReactNode; title?: string }) {
   return <span className={`pill ${tone ?? ''}`} title={title}>{children}</span>
 }
 
 export function SeverityPill({ severity }: { severity: 'error' | 'warning' | 'info' }) {
-  const tone = severity === 'error' ? 'bad' : severity === 'warning' ? 'warn' : 'info'
-  return <Pill tone={tone}>{severity === 'error' ? 'Error' : severity === 'warning' ? 'Check' : 'Note'}</Pill>
+  const s = SEVERITY[severity]
+  return <Pill tone={s.tone} title={s.hint}>{s.label}</Pill>
 }
 
 const STATUS_LABEL: Record<FindingStatus, [string, 'good' | 'warn' | 'bad' | 'info' | undefined]> = {
-  open: ['Open', 'bad'], proposed: ['Fix proposed', 'warn'], fixed: ['Fixed', 'good'],
-  accepted: ['Accepted', 'good'], informed: ['Client informed', 'good'], asked: ['Asked client', 'info'],
+  open: ['To do', 'bad'], proposed: ['Fix waiting for approval', 'warn'], fixed: ['Fixed', 'good'],
+  accepted: ['No change needed', 'good'], informed: ['Client told', 'good'], asked: ['Asked the client', 'info'],
 }
 
 export function StatusPill({ status }: { status: FindingStatus }) {
@@ -62,7 +63,7 @@ export function RefList({ refs }: { refs: string[] }) {
 }
 
 /**
- * A figure from the return. Click it to see where it came from. Shows the engine's value
+ * A figure from the return. Click it to see where it came from. Shows the tax software's value
  * struck through when we have adjusted it, and small dots for how it was checked.
  */
 export function Num({ line, cents, plain }: { line: ReturnLine; cents?: boolean; plain?: boolean }) {

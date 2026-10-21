@@ -31,7 +31,7 @@ export interface AdjustmentDraft {
 }
 
 export type FindingKind =
-  | 'engine_error'      // the engine's rule or arithmetic got it wrong
+  | 'engine_error'      // the tax software's rule or arithmetic got it wrong
   | 'extraction_error'  // the pipeline misread or missed something
   | 'data_conflict'     // two sources disagree
   | 'judgment'          // a call a human has to make

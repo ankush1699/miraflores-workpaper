@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, Route, Routes, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { findingStatus, isResolved } from '../domain/derived'
 import { notificationsFor } from '../domain/notify'
-import { initials, isActive, ROLE_LABEL } from '../domain/people'
+import { initials, ROLE_LABEL } from '../domain/people'
 import { AREAS } from '../packet'
 import { AreaPage } from '../pages/Area'
 import { ChangesPage } from '../pages/Changes'
@@ -21,6 +21,7 @@ import { day, who } from './Common'
 import { SearchPalette } from './Search'
 import { TraceDrawer } from './TraceDrawer'
 import { useUi } from './Ui'
+import { HelpPanel, RolePicker } from './Guides'
 
 export function Shell() {
   const { actor, toast, reportPage } = useStore()
@@ -72,10 +73,13 @@ export function Shell() {
 }
 
 function Topbar() {
-  const { idx, actors, actor, setActor, state, presence, undoLast, canUndo, say, resetDemo, findings, variances } = useStore()
+  const { idx, actors, actor, state, presence, undoLast, canUndo, say, resetDemo, findings, variances } = useStore()
   const navigate = useNavigate()
   const waiting = notificationsFor(actor, { idx, state, findings, variances })
   const { setPalette } = useUi()
+  const [picker, setPicker] = useState(false)
+  const [help, setHelp] = useState(false)
+  const [more, setMore] = useState(false)
   const [theme, setTheme] = useState<string>(() => { try { return localStorage.getItem('mf-theme') ?? 'auto' } catch { return 'auto' } })
   useEffect(() => {
     if (theme === 'auto') document.documentElement.removeAttribute('data-theme')
@@ -89,63 +93,74 @@ function Topbar() {
     <header className="topbar">
       <div className="brand"><span className="logo">M</span> Miraflores Workpaper</div>
       <button className="search no-print" onClick={() => setPalette(true)} style={{ border: '1px solid var(--line-strong)' }}>
-        <span>⌕</span><span style={{ flex: 1, textAlign: 'left' }}>Search documents, numbers, notes…</span><span className="kbd">⌘K</span>
+        <span>⌕</span><span style={{ flex: 1, textAlign: 'left' }}>Search anything…</span><span className="kbd">⌘K</span>
       </button>
       <span style={{ flex: 1 }} />
       {others.length > 0 && (
-        <div className="row" style={{ gap: 2 }} title={others.map((p) => `${who(actors, p.actorId)} is on ${p.page}`).join('\n')}>
+        <div className="row" style={{ gap: 2 }} title={others.map((p) => `${who(actors, p.actorId)} is also working on this`).join('\n')}>
           {others.map((p) => <span key={p.actorId} className="avatar live">{initials(who(actors, p.actorId))}</span>)}
         </div>
       )}
-      <span className="muted small" title="The engagement clock. It moves when you replay the season on the Filing page.">Season: {day(state.season.asOf)}</span>
+      <button className="btn role-btn" onClick={() => setPicker(true)} title="Switch to another person to see what they can do">
+        <span className="muted small">You are</span> <strong>{actor.name}</strong> <span className="pill">{ROLE_LABEL[actor.role]}</span> ▾
+      </button>
       <button className="btn small" onClick={() => navigate(actor.role === 'client' ? '/client' : '/')} title={waiting.map((w) => w.text).join('\n') || 'Nothing waiting for you'}>🔔 {waiting.length}</button>
       <button className="btn small" onClick={doUndo} disabled={!canUndo} title="Undo your last action">↶ Undo</button>
-      <label className="row small">
-        <span className="muted">Viewing as</span>
-        <select value={actor.id} onChange={(e) => setActor(e.target.value)} style={{ width: 'auto' }}>
-          {(['preparer', 'reviewer', 'partner', 'firm_administrator', 'quality_reviewer', 'client'] as const).map((role) => (
-            <optgroup key={role} label={ROLE_LABEL[role]}>
-              {actors.filter((a) => a.role === role).map((a) => (
-                <option key={a.id} value={a.id}>{a.name}{!isActive(a, state.season.asOf) ? ` (from ${a.activeFrom})` : ''}</option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-      </label>
-      <button className="btn small" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Light or dark">◐</button>
-      <button className="btn small" onClick={() => { if (window.confirm('Clear everything recorded in this workpaper and start over?')) resetDemo() }} title="Clear saved work">Reset</button>
+      <button className="btn small" onClick={() => setHelp(true)} title="How this works, and what the words mean">? Help</button>
+      <div style={{ position: 'relative' }}>
+        <button className="btn small" onClick={() => setMore(!more)} title="More">⋯</button>
+        {more && (
+          <div className="menu" onMouseLeave={() => setMore(false)}>
+            <div className="small muted" style={{ padding: '6px 10px' }} title="The date inside the story. It moves forward when you replay the season on the Filing page.">Story date: {day(state.season.asOf)}</div>
+            <button onClick={() => { setTheme(theme === 'dark' ? 'light' : 'dark'); setMore(false) }}>Switch light / dark</button>
+            <button onClick={() => { setMore(false); if (window.confirm('Clear everything recorded in this workpaper and start over?')) resetDemo() }}>Start over (clear everything)</button>
+          </div>
+        )}
+      </div>
+      {picker && <RolePicker onClose={() => setPicker(false)} />}
+      {help && <HelpPanel onClose={() => setHelp(false)} />}
     </header>
   )
 }
 
 function Sidebar() {
-  const { state, findings, events, actor } = useStore()
+  const { state, findings, actor } = useStore()
+  const loc = useLocation()
   const open = useMemo(() => findings.filter((f) => f.severity !== 'info' && !isResolved(findingStatus(f, state))), [findings, state])
   const byArea = (id: string) => open.filter((f) => f.area === id).length
+  const waiting = state.adjustments.filter((a) => a.status === 'proposed').length
   const openThreads = state.threads.filter((t) => t.status !== 'cleared').length
-  const lastSeen = state.seen[actor.id] ?? ''
-  const unseen = events.filter((e) => e.actor !== actor.id && e.at > lastSeen && !['seen.mark', 'sensitive.view'].includes(e.type)).length
-  const link = (to: string, label: string, count?: number, quiet?: boolean) => (
-    <NavLink to={to} end={to === '/'} className={({ isActive }) => (isActive ? 'active' : '')}>
-      {label}{count ? <span className={`count ${quiet ? 'quiet' : ''}`}>{count}</span> : null}
+  const [returnOpen, setReturnOpen] = useState<boolean>(() => { try { return localStorage.getItem('mf-nav-return') === '1' } catch { return false } })
+  useEffect(() => { if (loc.pathname.startsWith('/area/')) setReturnOpen(true) }, [loc.pathname])
+  const toggle = () => { const v = !returnOpen; setReturnOpen(v); try { localStorage.setItem('mf-nav-return', v ? '1' : '0') } catch { /* private window */ } }
+  const link = (to: string, icon: string, label: string, hint: string, count?: number, quiet?: boolean) => (
+    <NavLink to={to} end={to === '/'} title={hint} className={({ isActive }) => (isActive ? 'active' : '')}>
+      <span className="ico">{icon}</span>{label}{count ? <span className={`count ${quiet ? 'quiet' : ''}`}>{count}</span> : null}
     </NavLink>
   )
+  void actor
   return (
     <nav className="sidebar nav no-print">
-      {link('/', 'Overview')}
-      <div className="nav-title">The return</div>
-      {AREAS.map((a) => <span key={a.id}>{link(`/area/${a.id}`, a.label, byArea(a.id))}</span>)}
-      <div className="nav-title">Work</div>
-      {link('/issues', 'Issues', open.length)}
-      {link('/documents', 'Documents')}
-      {link('/changes', 'Changes', unseen, true)}
-      {link('/people', 'Notes & people', openThreads, true)}
-      {link('/filing', 'Filing & after')}
-      <div className="nav-title">Records</div>
-      {link('/schedules', 'CPA schedules')}
-      <div className="nav-title">Firm</div>
-      {link('/firm', 'Firm & standards')}
-      {link('/errors', 'Errors we found')}
+      {link('/', '⌂', 'Home', 'Where things stand and what to do next')}
+      {link('/issues', '!', 'Problems', 'What the checks found wrong in the return', open.length)}
+      {link('/changes', '✓', 'Fixes & approvals', 'Proposed fixes waiting for approval, and every change made', waiting, true)}
+      {link('/documents', '▤', 'Documents', 'The family’s 74 documents and where each one was used')}
+      <button className={`nav-group ${returnOpen ? 'open' : ''}`} onClick={toggle} title="The return, topic by topic">
+        <span className="ico">≡</span>The return<span className="chev">{returnOpen ? '▾' : '▸'}</span>
+      </button>
+      {returnOpen && (
+        <div className="nav-sub">
+          {AREAS.map((a) => <span key={a.id}>{link(`/area/${a.id}`, '', a.label, a.hint, byArea(a.id))}</span>)}
+        </div>
+      )}
+      {link('/people', '✎', 'Notes & sign-offs', 'Review notes, client questions and signatures', openThreads, true)}
+      {link('/filing', '➜', 'Filing', 'Checklist, e-file, and everything after filing')}
+      {link('/schedules', '▦', 'Reports', 'The standard reports an accountant expects')}
+      {link('/firm', '⚙', 'Settings & security', 'Firm rules, sensitive data log, time budget')}
+      <div className="nav-foot">
+        <div className="nav-title">For reviewers</div>
+        {link('/errors', '★', 'Errors we found', 'The submission write-up: every error found and how')}
+      </div>
     </nav>
   )
 }
@@ -153,8 +168,8 @@ function Sidebar() {
 function ClientNav() {
   return (
     <nav className="sidebar nav no-print">
-      <NavLink to="/client" className="active">Your return</NavLink>
-      <p className="muted small" style={{ padding: '10px' }}>You see what the firm needs from you and your copy of the return. Internal notes and review comments are not shown.</p>
+      <NavLink to="/client" className="active"><span className="ico">⌂</span>Your return</NavLink>
+      <p className="muted small" style={{ padding: '10px' }}>You see what the firm needs from you and your copy of the return. The firm’s internal notes are not shown.</p>
     </nav>
   )
 }

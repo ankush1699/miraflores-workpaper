@@ -15,7 +15,7 @@ export interface CheckRun {
 const reviewChecks: Check[] = [
   {
     id: 'documents-landed',
-    title: 'Every document the engine used reached the return',
+    title: 'Every document the tax software used reached the return',
     run: completenessFindings,
   },
   {
@@ -26,7 +26,7 @@ const reviewChecks: Check[] = [
       return foot.breaks.map((b) => ({
         id: `foot-${b.key}`, area: 'partner_review', severity: 'error' as const, kind: 'engine_error' as const,
         title: `${b.key} does not foot`,
-        detail: `The engine shows ${b.value} but its listed inputs add to ${b.expected}.`,
+        detail: `The tax software shows ${b.value} but its listed inputs add to ${b.expected}.`,
         surfacedBy: 'Independent arithmetic pass over every derived line.', refs: [`line:${b.key}`],
       }))
     },
@@ -35,7 +35,7 @@ const reviewChecks: Check[] = [
 
 export const allChecks: Check[] = [...engineChecks, ...otherChecks, ...reviewChecks]
 
-/** Run every independent check over the packet. Nothing here reads the engine's own diagnostics. */
+/** Run every independent check over the packet. Nothing here reads the tax software's own diagnostics. */
 export function runAllChecks(idx: PacketIndex): { findings: Finding[]; ran: CheckRun[] } {
   const findings: Finding[] = []
   const ran: CheckRun[] = []
@@ -50,7 +50,7 @@ export function runAllChecks(idx: PacketIndex): { findings: Finding[]; ran: Chec
 }
 
 /**
- * Which of our findings covers each engine diagnostic. The engine raises 11 diagnostics
+ * Which of our findings covers each engine diagnostic. The tax software raises 11 diagnostics
  * on v3; a reviewer should see that every one is either explained or consciously accepted.
  */
 export const DIAGNOSTIC_COVERAGE: Record<string, { findingId?: string; note: string }> = {

@@ -11,7 +11,7 @@ import { BUSINESS_NOTICE } from './noticeText'
 export function FilingPage() {
   return (
     <div className="page stack">
-      <PageHeader title="Filing & after">
+      <PageHeader title="Filing">
         What has to be true before the return files, the judgment calls on record, the e-file and client signature, and everything after: the frozen copy, amendments on top, notices, and next year.
       </PageHeader>
       <Readiness />
@@ -271,7 +271,7 @@ function Replay() {
   return (
     <section className="card">
       <h2>Replay the season</h2>
-      <p className="small muted">The packet scripts what happened after the last engine run. Play each event and it runs through the real rules, so if the return is not ready to be approved or filed, it says why instead of pretending. The season date in the top bar moves with it, which is also when Marcus and Sam become active.</p>
+      <p className="small muted">The data includes what happened after the tax software’s last calculation: client messages, the signature, e-filing, payments, a quality review, next year, and an IRS letter. Press Play to make each event happen. It goes through the real rules, so if the return isn’t ready to be approved or filed, it tells you why. The story date (⋯ menu) moves with it.</p>
       <ul className="timeline">
         {tl.map((t) => {
           const isPast = t.at <= v3At
@@ -345,7 +345,7 @@ function AfterFiling() {
             {f.payments.map((p, i) => <tr key={i}><td>{day(p.at)}</td><td>{p.agency} payment</td><td className="num"><Money n={p.amount} /></td><td className="small muted">{p.note}</td></tr>)}
             {f.refund && <tr><td>{day(f.refund.at)}</td><td>California refund</td><td className="num"><Money n={f.refund.amount} /></td><td className="small muted">Direct deposit, Austin Community Credit Union</td></tr>}
           </tbody></table>
-          {lc && <div className="alert warn small" style={{ marginTop: 8 }}>Paid {lc.days} days after 04/15/2026. The engine does not compute this; estimated interest <strong>{usd(lc.interest)}</strong> and failure-to-pay penalty <strong>{usd(lc.penalty)}</strong> ({lc.months} months at 0.5%). An extension of time to file is not an extension of time to pay. The IRS will assess the real amount (transaction codes 196 and 276).</div>}
+          {lc && <div className="alert warn small" style={{ marginTop: 8 }}>Paid {lc.days} days after 04/15/2026. The tax software does not compute this; estimated interest <strong>{usd(lc.interest)}</strong> and failure-to-pay penalty <strong>{usd(lc.penalty)}</strong> ({lc.months} months at 0.5%). An extension of time to file is not an extension of time to pay. The IRS will assess the real amount (transaction codes 196 and 276).</div>}
           <p className="small muted">Expected IRS transcript entries: code 150 total tax {usd(finals.federalTax)}; {finals.federalBalance > 0 ? `code 610 payment with return ${usd(finals.federalBalance)}` : `code 846 refund of ${usd(-finals.federalBalance)}`}.</p>
         </section>
       )}

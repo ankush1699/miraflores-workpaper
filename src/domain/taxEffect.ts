@@ -13,8 +13,8 @@ export interface TaxEffect {
 export const ZERO_EFFECT: TaxEffect = { federalTax: 0, californiaTax: 0, federalBalance: 0, californiaBalance: 0 }
 
 /**
- * Estimate the tax effect of a change by multiplying it by the engine's per-dollar rates.
- * The engine cannot be re-run, so this is an estimate measured at the v3 numbers: it
+ * Estimate the tax effect of a change by multiplying it by the tax software's per-dollar rates.
+ * The tax software cannot be re-run, so this is an estimate measured at the v3 numbers: it
  * does not know about thresholds the change might cross.
  *
  * Payments move the balance dollar for dollar, credits move tax dollar for dollar.

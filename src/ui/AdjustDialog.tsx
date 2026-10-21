@@ -114,7 +114,7 @@ export function AdjustDialog() {
 
         <div className="alert info" style={{ margin: '10px 0' }}>
           Estimated effect on the amount owed: federal <EffectText n={total.f} />, California <EffectText n={total.c} />.
-          <div className="small muted">Estimate from the engine's per-dollar rates at the v3 numbers. The real system recomputes.</div>
+          <div className="small muted">Estimate from the tax software's per-dollar rates at the v3 numbers. The real system recomputes.</div>
           {needsPartner && <div className="small"><strong>Over ${state.standards.partnerOver.toLocaleString()}: needs a partner to approve.</strong></div>}
         </div>
 

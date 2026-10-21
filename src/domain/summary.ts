@@ -12,7 +12,7 @@ export interface Position {
 }
 
 /**
- * Where the return stands: the engine's v3 numbers, the same after the adjustments that have
+ * Where the return stands: the tax software's v3 numbers, the same after the adjustments that have
  * been approved, and what they would be if every proposed fix for a clear error were approved.
  * Balances are amounts owed (negative means refund).
  */

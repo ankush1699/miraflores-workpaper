@@ -22,7 +22,7 @@ export function SchedulesPage() {
   const { name = 'summary' } = useParams()
   return (
     <div className="page">
-      <PageHeader title="CPA schedules">Each is built from the same records as the return, so it can be checked against it. Click any figure for its source.</PageHeader>
+      <PageHeader title="Reports">The standard reports an accountant expects, built from the same records as the return. Pick one on the left; click any number for its source.</PageHeader>
       <div className="grid" style={{ gridTemplateColumns: '220px minmax(0,1fr)' }}>
         <nav className="nav card" style={{ padding: 8, alignSelf: 'start' }}>
           {LIST.map(([k, l]) => <NavLink key={k} to={`/schedules/${k}`} className={({ isActive }) => (isActive || (name === k) ? 'active' : '')}>{l}</NavLink>)}
@@ -109,7 +109,7 @@ function Summary() {
       </section>
       <section className="card">
         <h2>Every year-over-year swing</h2>
-        <p className="small muted">Flagged when a line moved by more than {th.flag_if_change_over_percent}% and more than {usd(th.and_over_amount)} (change these in Firm → Standards). {flagged.length} lines flagged, {flagged.filter((v) => state.varianceNotes[v.key]).length} explained.</p>
+        <p className="small muted">Flagged when a line moved by more than {th.flag_if_change_over_percent}% and more than {usd(th.and_over_amount)} (change these in Settings & security). {flagged.length} lines flagged, {flagged.filter((v) => state.varianceNotes[v.key]).length} explained.</p>
         {can('step.attest') && (
           <div className="row" style={{ marginBottom: 6 }}>
             <button className="btn small" onClick={() => setPicked(new Set(flagged.filter((v) => !state.varianceNotes[v.key]).map((v) => v.key)))}>Select all unexplained</button>
@@ -360,7 +360,7 @@ function Carryovers() {
     <section className="card"><h2>Carryovers in and out</h2>
       <table className="tbl"><thead><tr><th>Item</th><th className="num">From 2024</th><th className="num">To 2026</th></tr></thead>
         <tbody>{pairs.map(([l, a, b]) => <tr key={l}><td>{l}</td><td className="num">{String(a ?? 0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td><td className="num">{String(b ?? 0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td></tr>)}</tbody></table>
-      <p className="small muted">The 2024 side is agreed to the return and the prior preparer's file (required step). The 2026 side is the engine's, before any adjustments; see Firm → Filing for the roll-forward.</p>
+      <p className="small muted">The 2024 side is agreed to the return and the prior preparer's file (required step). The 2026 side is the tax software's, before any adjustments; see Filing for the roll-forward.</p>
     </section>
   )
 }

@@ -15,11 +15,11 @@ export function ChangesPage() {
   const [tab, setTab] = useState<Tab>('ledger')
   return (
     <div className="page stack">
-      <PageHeader title="Changes">
-        Every adjustment sits on top of the engine's original, with who made it, why, the authority and the estimated tax effect. Nothing is overwritten, so you can always see the original, compare any two moments, and take actions back.
+      <PageHeader title="Fixes & approvals">
+        A fix never overwrites the original number. It sits on top, with who proposed it, why, the rule relied on, and the estimated tax effect, until someone else approves it.
       </PageHeader>
       <div className="tabs" style={{ marginTop: 0 }}>
-        {([['ledger', 'Adjustments'], ['compare', 'Compare versions'], ['whatif', 'What-ifs']] as const).map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}
+        {([['ledger', 'Fixes'], ['compare', 'Compare versions'], ['whatif', 'Try what-ifs']] as const).map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}
       </div>
       {tab === 'ledger' && <Ledger />}
       {tab === 'compare' && <Compare />}
@@ -54,11 +54,18 @@ function Ledger() {
     setPicked(new Set())
   }
 
+  const banner =
+    actor.role === 'preparer' ? 'Fixes you propose wait here until a reviewer (up to $1,000 of tax) or the partner (bigger ones) approves them. You can’t approve your own.'
+    : actor.role === 'reviewer' ? 'Tick fixes and press Approve. You can approve fixes up to $1,000 of tax; bigger ones need the partner.'
+    : actor.role === 'partner' ? 'You can approve any fix, except one you proposed yourself.'
+    : 'Only the reviewer and the partner approve fixes. Switch person (top right) to try it.'
+
   return (
     <>
+      <div className="banner">{banner}</div>
       <div className="grid cols-3">
         <div className="kpi"><div className="label">Approved so far</div><div className="value">{approvedAdjustments(state).length}</div><div className="sub">federal <EffectText n={totals.federalBalance} /> · California <EffectText n={totals.californiaBalance} /></div></div>
-        <div className="kpi"><div className="label">Waiting for approval</div><div className="value">{state.adjustments.filter((a) => a.status === 'proposed').length}</div><div className="sub">over ${state.standards.partnerOver.toLocaleString()} needs a partner</div></div>
+        <div className="kpi"><div className="label">Waiting for approval</div><div className="value">{state.adjustments.filter((a) => a.status === 'proposed').length}</div><div className="sub">fixes over ${state.standards.partnerOver.toLocaleString()} of tax need the partner</div></div>
         <div className="kpi"><div className="label">Changed by others since you looked</div><div className="value">{unseen.length}</div><div className="sub">{state.seen[actor.id] ? `since ${when(state.seen[actor.id])}` : 'you have not marked anything seen'}</div></div>
       </div>
 
@@ -84,9 +91,9 @@ function Ledger() {
             </div>
           )}
         </div>
-        {rows.length === 0 ? <p className="muted">No adjustments {filter === 'all' ? 'yet' : `that are ${filter}`}. Propose fixes from Issues, or adjust any number from its evidence panel.</p> : (
+        {rows.length === 0 ? <p className="muted">No fixes {filter === 'all' ? 'yet' : `that are ${filter}`}. Propose them from Problems, or click any number and choose “Adjust this number”.</p> : (
           <table className="tbl" style={{ marginTop: 8 }}>
-            <thead><tr><th /><th>Adjustment</th><th className="num">Line change</th><th className="num">Federal</th><th className="num">California</th><th>Who and why</th><th>Status</th></tr></thead>
+            <thead><tr><th /><th>Fix</th><th className="num">Change</th><th className="num">Federal</th><th className="num">California</th><th>Who and why</th><th>Status</th></tr></thead>
             <tbody>
               {rows.map((a) => <LedgerRow key={a.id} a={a} picked={picked.has(a.id)} onPick={() => toggle(a.id)} can={can('adjust.approve') && a.status === 'proposed'} />)}
             </tbody>
@@ -121,7 +128,7 @@ function Compare() {
   const { idx, state, stateAt } = useStore()
   const sources = useMemo<Source[]>(() => {
     const engine = idx.versions.map((v) => ({
-      id: v.version, label: `Engine ${v.version} · ${day(v.computed_at)}`,
+      id: v.version, label: `Tax software run ${v.version} · ${day(v.computed_at)}`,
       values: () => new Map(v.lines.map((l) => [l.key, l.value])),
     }))
     const workpaperAt = (st: WorkState) => () => {
@@ -183,7 +190,7 @@ function Compare() {
           </tbody>
         </table>
       </div>
-      <p className="muted small">Engine runs are compared line by line as delivered. Workpaper versions are the v3 return with only the adjustments approved at that moment applied; downstream lines are estimated, not recomputed.</p>
+      <p className="muted small">The tax software's runs are compared line by line as delivered. Workpaper versions are the v3 return with only the adjustments approved at that moment applied; downstream lines are estimated, not recomputed.</p>
     </section>
   )
 }
@@ -214,7 +221,7 @@ function WhatIfs() {
   return (
     <div className="stack">
       <section className="card">
-        <h2>The engine's alternatives</h2>
+        <h2>The tax software's alternatives</h2>
         <p className="small muted">These are real engine runs from the packet, not estimates. Record the election you chose, with the authority.</p>
         <table className="tbl">
           <thead><tr><th>Alternative</th><th className="num">Federal tax</th><th className="num">California tax</th><th /></tr></thead>
@@ -235,7 +242,7 @@ function WhatIfs() {
       <section className="card">
         <h2>Try adjustments before approving them</h2>
         <p className="small muted">Tick proposed adjustments to see where the balance would land, without approving anything.</p>
-        {proposed.length === 0 ? <p className="muted">Nothing is waiting. Propose fixes on the Issues page first.</p> : (
+        {proposed.length === 0 ? <p className="muted">Nothing is waiting. Propose fixes on the Problems page first.</p> : (
           <table className="tbl"><tbody>
             {proposed.map((a) => <tr key={a.id}><td style={{ width: 28 }}><input type="checkbox" checked={tryIds.has(a.id)} onChange={() => setTryIds((p) => { const n = new Set(p); n.has(a.id) ? n.delete(a.id) : n.add(a.id); return n })} /></td><td>{a.label}</td><td className="num"><EffectText n={a.effect.federalBalance} /></td><td className="num"><EffectText n={a.effect.californiaBalance} /></td></tr>)}
           </tbody></table>
