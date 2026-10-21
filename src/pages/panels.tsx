@@ -20,7 +20,7 @@ export function BusinessPanel() {
         <tr className="group"><td>Expected revenue</td><td className="num"><Money n={r.necTotal + r.noForm} /></td></tr>
         <tr><td>Books: total income <span className="muted small">(D14)</span></td><td className="num"><Money n={r.books} /> {r.booksTiesToForms && <Pill tone="good">ties</Pill>}</td></tr>
         <tr><td>Form 1099-K, Paywell <span className="muted small">(already inside Atlas's 1099-NEC: {usd(r.inAtlas)} arrived by card)</span></td><td className="num"><Money n={r.kTotal} /></td></tr>
-        <tr className="flag"><td>Engine gross receipts <span className="muted small">(books + 1099-K)</span></td><td className="num"><Num line={gross} /></td></tr>
+        <tr className="flag"><td>The tax software’s figure <span className="muted small">(books + the card payments again)</span></td><td className="num"><Num line={gross} /></td></tr>
         <tr><td><strong>Difference from the books</strong></td><td className="num"><Money n={r.engine - r.books} tone /></td></tr>
       </tbody></table>
     </section>
