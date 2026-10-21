@@ -13,13 +13,28 @@ export function BusinessPanel() {
   return (
     <section className="card">
       <h2>Do the books agree to the 1099s?</h2>
+      <p className="small muted">Each client who paid Erik sent a 1099-NEC with their total for the year. Separately, the card company Paywell sent a 1099-K listing the payments that came in by card.</p>
       <table className="tbl"><tbody>
-        {r.nec.map((n) => <tr key={n.doc}><td><RefChip r={`doc:${n.doc}`} /> {n.payer}</td><td className="num"><Money n={n.amount} /></td></tr>)}
+        {r.nec.map((n) => (
+          <tr key={n.doc}>
+            <td>
+              <RefChip r={`doc:${n.doc}`} /> {n.payer}
+              {n.doc === 'D17' && <div className="muted small">This is Atlas’s total for the year. Erik’s bookkeeping report says {usd(r.inAtlas)} of it was paid by card through Paywell and the rest by bank transfer <RefChip r="doc:D15#page3" /></div>}
+            </td>
+            <td className="num"><Money n={n.amount} /></td>
+          </tr>
+        ))}
         <tr><td><strong>Five 1099-NECs</strong></td><td className="num"><Money n={r.necTotal} /></td></tr>
         <tr><td>Small clients with no 1099 <span className="muted small">(D15 p3)</span></td><td className="num"><Money n={r.noForm} /></td></tr>
         <tr className="group"><td>Expected revenue</td><td className="num"><Money n={r.necTotal + r.noForm} /></td></tr>
         <tr><td>Books: total income <span className="muted small">(D14)</span></td><td className="num"><Money n={r.books} /> {r.booksTiesToForms && <Pill tone="good">ties</Pill>}</td></tr>
-        <tr><td>Form 1099-K, Paywell <span className="muted small">(already inside Atlas's 1099-NEC: {usd(r.inAtlas)} arrived by card)</span></td><td className="num"><Money n={r.kTotal} /></td></tr>
+        <tr>
+          <td>
+            <RefChip r="doc:D21" /> Paywell 1099-K (card payments)
+            <div className="muted small">Not new income. These are the same {usd(r.inAtlas)} of Atlas card payments already counted in Atlas’s {usd(r.nec.find((n) => n.doc === 'D17')?.amount ?? 0)} above, so they must not be added again.</div>
+          </td>
+          <td className="num"><Money n={r.kTotal} /></td>
+        </tr>
         <tr className="flag"><td>The tax software’s figure <span className="muted small">(books + the card payments again)</span></td><td className="num"><Num line={gross} /></td></tr>
         <tr><td><strong>Difference from the books</strong></td><td className="num"><Money n={r.engine - r.books} tone /></td></tr>
       </tbody></table>

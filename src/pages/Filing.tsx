@@ -369,7 +369,7 @@ function AfterFiling() {
                 <tr><td>Schedule C gross receipts</td><td className="num"><Num line={idx.current.lines.find((x) => x.key === 'SchC.1')!} /></td></tr>
                 <tr><td>1099-NEC total</td><td className="num">{usd(142000)}</td></tr>
                 <tr><td>Clients with no 1099 (D15)</td><td className="num">{usd(9300)}</td></tr>
-                <tr><td>1099-K (inside Atlas's 1099-NEC)</td><td className="num">{usd(12400)}</td></tr>
+                <tr><td>1099-K from Paywell: the card part of Atlas’s $41,200, not extra income (Erik’s books, D15 p3)</td><td className="num">{usd(12400)}</td></tr>
               </tbody></table>
               <p className="small muted">{BUSINESS_NOTICE.receipts}</p>
               <div className="row wrap"><RefChip r="doc:D15#page3" /><RefChip r="doc:D21" /><RefChip r="line:SchC.1" /></div>
