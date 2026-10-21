@@ -1,0 +1,5 @@
+node_modules
+dist
+.DS_Store
+# personal prep notes (study guide, demo script, draft email), not part of the submission
+prep/
