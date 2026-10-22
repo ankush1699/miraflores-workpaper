@@ -1,52 +1,40 @@
-# Core idea and data model
+# The idea, in one page
 
-## The idea
+## The problem
 
-A workpaper exists to answer four questions about a return: **where did each number come from, what was done to it, who checked it, and what is still open?** A spreadsheet answers them badly because it stores *values*. This workpaper stores *what happened*.
+MiraFlores' tax software reads a family's documents and calculates their return. Before it is filed, an accountant has to check it and be able to prove every number. Today that proof lives in spreadsheets, emails and people's memory.
 
-1. **Every number is a node with its evidence attached.** A figure points to the lines it was built from, to the exact field on the exact document page it was read from, to the way it was verified, and to every note, question, adjustment and decision recorded against it. Click any number and you get all of that in one drawer.
-2. **The engine's numbers are never overwritten.** A change is an *adjustment* that sits on top: who, why, the authority relied on, and the estimated tax effect (the change times the engine's own per-dollar rate, since the engine cannot be re-run). The original is always one click away.
-3. **Everything that happens is an event, and state is the replay of events.** That one decision gives history, "what changed since I last looked", comparison of any two moments, undo of any action (including bulk ones), and a frozen copy at filing, without separate features for each.
-4. **A signature covers what the signer saw.** Sign-offs and the client's e-signature store the set of approved adjustments they covered. If the set changes, they reopen and say what changed.
-5. **The workpaper does not trust the engine, so it checks.** Independent checks recompute from the printed documents. They found things the engine's own diagnostics did not (see `docs/ERRORS.md`). Each check shows what it looked at, even when it found nothing.
+For the Okafor-Lindqvist family, the software says they **owe $4,220**. That number is wrong. Once the mistakes are fixed, they actually **get about $9,000 back** federally. Without a good workpaper, nobody would know.
 
-## Data model
+## The core idea
 
-```
-Packet (read-only, as delivered)
-  documents ── pages ── printed_content
-  extracted_values  (document, page, field, value, confidence)
-  return_versions   (v1, v2, v3 → lines → inputs, sources, rule)
-  client, prior_years, agency records, firm, timeline
+**Don't store the numbers. Store what happened to them.**
 
-Reference   a short address for anything evidence can point at
-            line:SchC.1 · ev:ev-0103 · doc:D15#page3 · qa:qa-14 · msg:msg-07
-            py:/return_2024/lines/F1040.11 · agency:/efile/0 · household:theo
-            (a real scanned document would be addressed the same way)
+A spreadsheet keeps only the latest value of each cell. This workpaper keeps a record of every action: who looked at a number, what they changed, why, and who approved it. Everything else is built on that record.
 
-Event       { id, at, actor, type, data, group }    ← the only thing saved
-  adjust.propose / adjust.decide / adjust.revert
-  verify.add · attach.add · link.add
-  thread.open / reply / status          (review notes, client questions)
-  signoff.add · step.attest · judgment.add · finding.decide
-  filing.extension / approve / submission / freeze / payment / notice / rollforward
-  standards.set · assign.set · time.log · sensitive.view · seen.mark · undo
+That gives five things a CPA needs:
 
-State       reduce(events) →
-  Adjustment  { target, lineDelta | textFix, effects[], effect, reason, authority, status, amendment? }
-  Thread      { target, kind: review | question | internal, blocking, status, messages }
-  Signoff     { level, by, adjustmentIds[] }          ← reopens if the set changes
-  Judgment    { kind, topic, decision, authority }
-  Verification, Attachment, Link, FindingDecision, VarianceNote, ...
-  FilingState { extension, clientApproval, submissions[], frozen, payments, notice, rollForward }
+1. **Every number can be clicked.** It shows the document and the exact spot it came from, how it was calculated, and everything ever done to it.
+2. **Nothing is overwritten.** A correction sits on top of the original, with who made it, the reason, the tax rule, and how much tax it changes. The original is always one click away.
+3. **History comes for free.** Because every action is recorded, the app can show what changed since you last looked, compare any two moments, undo a whole batch of actions, and lock an exact copy when the return is filed.
+4. **A signature means something.** When the reviewer or partner signs, the app remembers exactly what they approved. If a number changes afterwards, their signature reopens and says what changed.
+5. **The app checks the software instead of trusting it.** My own checks re-read the documents and recalculate. They found 22 real mistakes the software missed (13 calculation mistakes, 4 misread documents, 5 places where sources disagree). Fixing the clear ones changes the family's federal result by about $13,000.
 
-Finding     produced by an independent check, not stored:
-            { evidence refs, estimated effect, proposed fix (draft adjustments), how it was surfaced }
-```
+## The data model, simply
+
+| Piece | What it is |
+|---|---|
+| **The packet** | The data MiraFlores gave: documents, the values read from them, the software's three calculations, client answers, last year's return, IRS records. Read-only; never changed. |
+| **A reference** | A short address for anything that can be evidence: a line on the return, a value on a document page, a client message, last year's figure. A real scanned document would be addressed the same way. |
+| **An event** | The only thing saved: who did what, when, and why (proposed a fix, approved it, asked the client, signed, filed). |
+| **The current state** | Built by replaying all the events in order. Fixes, notes, questions, verifications, signatures and the filing status all come from this. |
+| **A problem** | Something one of the 30 checks found, with its evidence, the tax effect, and a proposed fix that someone else has to approve. |
 
 ## Decisions and trade-offs
 
-- **Browser-only, event-sourced.** No server or accounts, so a reviewer can open a link and use it; everything persists in the browser and two tabs see each other live. The trade-off is that roles are enforced in the client, not on a backend. Persistence is one small file (`store/db.ts`), so a server is a swap, not a rewrite.
-- **Estimates, not recomputation.** The engine can't be re-run, so tax effects are labelled estimates at the v3 numbers and never presented as the return.
-- **Findings are code, not data.** Each check is a small, tested function over the packet. They are specific to this household where they have to be, but they work from document text and extracted values, not from hard-coded answers.
-- **Rules are enforced when a thing is saved, not only hidden in menus.** Self-review, the partner threshold, clearance, who is active on the engagement, and what a client can do are all checked in `store/rules.ts`, and the firm administrator can change the standards they read.
+- **It runs in the browser, with no server.** Anyone can open a link and use it straight away, and work is saved in the browser. *Trade-off:* permissions are checked in the browser, not on a server. Storage is one small file, so moving to a real backend later is a swap, not a rewrite.
+- **Tax effects are estimates.** The software can't be re-run, so the app multiplies each change by the software's own tax rates. It always labels these as estimates.
+- **The firm's rules are enforced, not just written.** Nobody approves their own work. Changes over $1,000 need the partner. The two signatures must come from two different people. Staff without clearance see sensitive numbers masked, and every unmasked view is logged. The firm administrator can change these rules.
+- **Built for a first-time user.** Plain words instead of tax jargon, a five-step path to filing on the home page, and a help panel that explains every term.
+
+**Built with** React and TypeScript, the browser's own database (IndexedDB) for saving, and 16 automated tests that run the checks on the real data. I used Claude Code as an AI coding assistant to write the code faster; the design and product decisions above are mine.

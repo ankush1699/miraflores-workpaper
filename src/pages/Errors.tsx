@@ -34,7 +34,7 @@ export function ErrorsPage() {
   return (
     <div className="page stack">
       <PageHeader title="Errors we found">
-        The packet says it contains confident mistakes. These are the ones the workpaper's own checks found by recomputing from the printed documents, with the figure each moves and the feature of the design that exposed it. The tax software raised none of the software mistakes itself.
+        MiraFlores warned that the data contains confident mistakes. These are the ones the app’s own checks found by re-reading the documents, with how much each one changes and how the app caught it. The tax software’s own warnings caught none of them.
       </PageHeader>
       <div className="row spread">
         <span className="muted small">{real.length} errors and checks · {outside.length} items outside the engagement · {judgments.length} judgment calls</span>
@@ -70,18 +70,11 @@ function About() {
   return (
     <section className="card">
       <h2>How this was built</h2>
-      <p className="small">Built with Claude Code as a pair: it read the packet and the 74 documents, wrote the independent checks and the app, and ran the checks against the real data in tests. The design decisions, the tax reasoning behind each finding and the choice of what to leave out were reviewed by a person. All figures here come from the packet; tax effects use the tax software's own per-dollar rates because the tax software cannot be rerun.</p>
-      <h3 style={{ margin: '10px 0 4px' }}>Core idea</h3>
-      <p className="small">A workpaper is an evidence graph with an append-only history. Every number points to its inputs and its source location; the tax software's numbers are never overwritten; every change, note, verification and signature is an event with a person and a reason; and sign-offs store what they covered, so they reopen when it changes.</p>
-      <h3 style={{ margin: '10px 0 4px' }}>Data model</h3>
-      <ul className="small" style={{ paddingLeft: 18 }}>
-        <li><strong>Packet</strong> (read-only): documents, extracted values, three runs of the tax software, client records, prior years, agency records, timeline.</li>
-        <li><strong>Reference</strong>: a short address for anything evidence can point at: <code>line:SchC.1</code>, <code>ev:ev-0103</code>, <code>doc:D15#page3</code>, <code>qa:qa-14</code>, <code>py:/return_2024/lines/…</code>. A real scanned document would be addressed the same way.</li>
-        <li><strong>Event</strong> (the only thing saved): who, when, type, data. State is rebuilt by replaying events, which gives history, time travel between versions, undo, and a frozen copy at filing for free.</li>
-        <li><strong>Adjustment</strong>: target, change, tax effect, reason, authority, status; sits on top of the tax software’s line.</li>
-        <li><strong>Finding</strong>: produced by an independent check from source documents; carries evidence, an estimated effect and a proposed fix.</li>
-        <li><strong>Verification, thread, sign-off, judgment, attachment, link</strong>: all keyed by reference; a sign-off holds the set of approved adjustments it covered.</li>
-      </ul>
+      <p className="small"><strong>The idea:</strong> don’t store the numbers, store what happened to them. Every action (a fix, an approval, a question, a signature) is saved with who did it and why. History, undo, comparing versions, signatures that reopen, and the locked copy at filing all come from that one record.</p>
+      <p className="small"><strong>The checks:</strong> 30 checks re-read the documents and recalculate, instead of trusting the tax software. They found 22 real mistakes it missed.</p>
+      <p className="small"><strong>The technology:</strong> React and TypeScript; the browser’s own database (IndexedDB) to save work, so there’s no server or login; 16 automated tests that run the checks on the real data; hosted on GitHub Pages.</p>
+      <p className="small"><strong>AI:</strong> I used Claude Code as an AI coding assistant to write the code faster. The design and product decisions are mine. Tax effects are estimates using the tax software’s own rates, because the software can’t be re-run.</p>
+      <p className="small">More detail: the one-page summary and the full list of mistakes are in the GitHub repository (docs/ONE_PAGER.md and docs/ERRORS.md).</p>
     </section>
   )
 }
